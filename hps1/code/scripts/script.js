@@ -74,12 +74,19 @@ class Player
 	{
 		this.x = 0;
 		this.y = 0;
+		this.velX = 0;
+		this.velY = 0;
+		this.gravity = -0.5;
+		this.floorFriction = 0.5;
 		this.width = 1;
-		this.height = 2;
-		// The speed is 1 unit per second
-		this.speed = 2/1000;
+		this.height = 1;
+		// The speed is 2 units per second
+		this.speed = 0.001;
 		this.fallSpeed = 0;
 		this.fallSpeedMax = 8/1000;
+		this.onGround = false;
+		this.isJumping = false;
+		this.isFalling = false;
 	}
 }
 
@@ -101,8 +108,8 @@ let map = "";
 map += "wwwwwwwwwwwwwwww";
 map += "w  w           w";
 map += "w  w           w";
-map += "w  w           w";
-map += "w  wwwwwwwww   w";
+map += "w  wwwwwwwwww  w";
+map += "w              w";
 map += "w              w";
 map += "w    www       w";
 map += "wwwwwwwwwwwwwwww";
@@ -136,59 +143,114 @@ window.main = function()
 	/* Handle input */
 	if (leftPressed)
 	{
-		player.x -= player.speed * elapsedTime;
+		player.velX -= player.speed * elapsedTime;
 
 		// Check if player is out of bounds
 		if (player.x < 0 || player.x+player.width > MAP_WIDTH || player.y < 0 || player.y+player.height > MAP_HEIGHT)
 		{
-			player.x += player.speed * elapsedTime;
+			player.velX += player.speed * elapsedTime;
+		}
+
+		// Check if player has collided with game block
+		let rect1X = Math.floor(player.x);
+		let rect1Y = Math.floor(player.y);
+		if (map[rect1X + rect1Y * MAP_WIDTH] != " ") {
+			if (rect1X < player.x + player.width && rect1X + u > player.x)
+			{
+				console.log("collision detected!");
+				player.velX += player.speed * elapsedTime;
+			}
 		}
 	}
 
 	if (rightPressed)
 	{
-		player.x += player.speed * elapsedTime;
+		player.velX += player.speed * elapsedTime;
 
 		// Check if player is out of bounds
 		if (player.x < 0 || player.x + player.width > MAP_WIDTH || player.y < 0 || player.y + player.height > MAP_HEIGHT)
 		{
-			player.x -= player.speed * elapsedTime;
+			player.velX -= player.speed * elapsedTime;
 		}
 
-		// Check collision to the left side of the player
-		if (map[Math.floor(player.x - colPrec) + ((player.y) * MAP_WIDTH)] == "w")
-		{
-			player.x += colPrec;
-		}
-		if (map[Math.ceil(player.x + player.width + colPrec) + ((player.y) * MAP_WIDTH)] == "w")
-		{
-			player.x -= colPrec;
+		// Check if player has collided with game block
+		let rect1X = Math.round(player.x);
+		let rect1Y = Math.round(player.y);
+		if (map[rect1X + rect1Y * MAP_WIDTH] != " ") {
+			if (rect1X < player.x + player.width && rect1X + u > player.x)
+			{
+				console.log("collision detected!");
+				player.velX -= player.speed * elapsedTime;
+			}
 		}
 	}
 
-	/* Collision detection */
-	//if (map[player.x-colPrec + ((player.y-colPrec) * MAP_WIDTH) != "w")
-	if (map[player.x-0.1 + ((player.y-0.1) * MAP_WIDTH)] != "w")
+	if (upPressed)
 	{
-		//player.fallSpeed += 1/4000;
+		console.log("up pressed\n");
 
-		if (player.fallSpeed > player.fallSpeedMax)
+		if (player.onGround == true)
 		{
-			player.fallSpeed = player.fallSpeedMax;
+			player.velY += 1;
+			player.onGround = false;
 		}
 
-		player.y -= player.fallSpeed*elapsedTime;
-
-		if (map[player.x + ((player.y) * MAP_WIDTH)] == "w")
+		// Check if player is out of bounds
+		if (player.x < 0 || player.x + player.width > MAP_WIDTH || player.y < 0 || player.y + player.height > MAP_HEIGHT)
 		{
-			player.y += player.fallSpeed * elapsedTime;
+			player.velY -= 1;
+			player.onGround = true;
+		}
+
+		// Check if player has collided with game block
+		let rect1X = Math.round(player.x);
+		let rect1Y = Math.round(player.y);
+		if (map[rect1X + rect1Y * MAP_WIDTH] != " ") {
+			if (rect1Y < player.y+ player.height && rect1Y + u > player.y)
+			{
+				console.log("collision detected!");
+				player.velY -= 1;
+				player.onGround = true;
+			}
 		}
 	}
-	else
+
+	/* Physics */
+	if (player.onGround == false)
 	{
-		player.fallSpeed = 0;
+		//player.velY -= 0.01;
 	}
 
+	let rect1X = Math.floor(player.x);
+	let rect1Y = Math.floor(player.y);
+	if (map[rect1X + rect1Y * MAP_WIDTH] != " ") {
+		if (rect1Y < player.y + player.height && rect1Y + u > player.y) {
+			console.log("collision detected!");
+			player.y += 0.01;
+			player.onGround = true;
+			player.velY = 0;
+		}
+	}
+
+	/* Update */
+	player.x += player.velX * elapsedTime;
+	player.y += player.velY * elapsedTime;
+	console.log("player.x: " + player.x + "\n");
+	console.log("player.y: " + player.y + "\n");
+	console.log("player.velX: " + player.velX + "\n");
+	console.log("player.velY: " + player.velY + "\n");
+	if (player.velX != 0)
+	{
+		if (player.velX > 0)
+		{
+			player.velX -= player.floorFriction * elapsedTime;
+		}
+		if (player.velX < 0)
+		{
+			player.velX += player.floorFriction * elapsedTime;
+		}
+	}
+	player.velY += player.gravity * elapsedTime;
 	
 	/* Show */
 	/*
