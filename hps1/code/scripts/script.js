@@ -22,6 +22,9 @@ let leftPressed = false;
 let rightPressed = false;
 let upPressed = false;
 
+// The collision precision in game units
+let colPrec = 0.01;
+
 // Get player input
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
@@ -73,7 +76,10 @@ class Player
 		this.y = 0;
 		this.width = 1;
 		this.height = 2;
-		this.speed = 1;
+		// The speed is 1 unit per second
+		this.speed = 2/1000;
+		this.fallSpeed = 0;
+		this.fallSpeedMax = 8/1000;
 	}
 }
 
@@ -112,7 +118,7 @@ camera.x = 0;
 camera.y = 8;
 
 let player = new Player();
-player.x = 3;
+player.x = 2;
 player.y = 2;
 
 window.main = function()
@@ -127,11 +133,62 @@ window.main = function()
 	//camera.x += 0.01;
 	//camera.y -= 0.01;
 	//camera.y += 1;
-	// Handle input
+	/* Handle input */
 	if (leftPressed)
 	{
-		player.x -= 0.01;//player.speed * elapsedTime;
+		player.x -= player.speed * elapsedTime;
+
+		// Check if player is out of bounds
+		if (player.x < 0 || player.x+player.width > MAP_WIDTH || player.y < 0 || player.y+player.height > MAP_HEIGHT)
+		{
+			player.x += player.speed * elapsedTime;
+		}
 	}
+
+	if (rightPressed)
+	{
+		player.x += player.speed * elapsedTime;
+
+		// Check if player is out of bounds
+		if (player.x < 0 || player.x + player.width > MAP_WIDTH || player.y < 0 || player.y + player.height > MAP_HEIGHT)
+		{
+			player.x -= player.speed * elapsedTime;
+		}
+
+		// Check collision to the left side of the player
+		if (map[Math.floor(player.x - colPrec) + ((player.y) * MAP_WIDTH)] == "w")
+		{
+			player.x += colPrec;
+		}
+		if (map[Math.ceil(player.x + player.width + colPrec) + ((player.y) * MAP_WIDTH)] == "w")
+		{
+			player.x -= colPrec;
+		}
+	}
+
+	/* Collision detection */
+	//if (map[player.x-colPrec + ((player.y-colPrec) * MAP_WIDTH) != "w")
+	if (map[player.x-0.1 + ((player.y-0.1) * MAP_WIDTH)] != "w")
+	{
+		//player.fallSpeed += 1/4000;
+
+		if (player.fallSpeed > player.fallSpeedMax)
+		{
+			player.fallSpeed = player.fallSpeedMax;
+		}
+
+		player.y -= player.fallSpeed*elapsedTime;
+
+		if (map[player.x + ((player.y) * MAP_WIDTH)] == "w")
+		{
+			player.y += player.fallSpeed * elapsedTime;
+		}
+	}
+	else
+	{
+		player.fallSpeed = 0;
+	}
+
 	
 	/* Show */
 	/*
@@ -163,8 +220,7 @@ window.main = function()
 	
 	// Draw player
 	ctx.fillStyle = "#ff0000";
-	ctx.fillRect((player.x-camera.x)*u, (player.y+camera.y-MAP_HEIGHT)*u, player.width * u, player.height * u);
-	ctx.fillRect(50, 50, 50, 50);
+	ctx.fillRect((player.x - camera.x) * u, (camera.y - player.y - player.height)*u, player.width * u, player.height * u);
 	
 };
 
