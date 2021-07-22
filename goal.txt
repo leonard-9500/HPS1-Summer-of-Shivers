@@ -1,0 +1,4 @@
+The player finds himself in a submarine, cables are hanging from the ceiling, the floor is made of metal, so wet, it reflects the dim flickering emergency lights around it.
+
+It's a 2d side-scroller with parallax. The map is purely made of blocks which is saved in a map array with chars for the different types of blocks.
+The player is 2 blocks high and 1 block wide. Each block is 1x1 unit large and has a texture of 16x16 pixels.
