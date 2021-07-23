@@ -19,8 +19,11 @@ canvas.height = SCREEN_HEIGHT;
 const ctx = canvas.getContext("2d");
 
 let leftPressed = false;
+let leftReleased = false;
 let rightPressed = false;
+let rightReleased = false;
 let upPressed = false;
+let upReleased = false;
 
 // The collision precision in game units
 let colPrec = 0.01;
@@ -35,17 +38,20 @@ function keyDownHandler(e)
 	if (e.code == "KeyA")//"0x001E")
 	{
 		leftPressed = true;
+		leftReleased = false;
 		console.log("leftPressed\n\n\n\n");
 	}
 	// Key D
 	if (e.code == "KeyD")//"0x0020")
 	{
 		rightPressed = true;
+		rightReleased = false;
 	}
 	// Key W
 	if (e.code == "KeyW")//"0x0011")
 	{
 		upPressed = true;
+		upReleased = false;
 	}
 }
 
@@ -55,16 +61,19 @@ function keyUpHandler(e)
 	if (e.code == "KeyA")//"0x001E")
 	{
 		leftPressed = false;
+		leftReleased = true;
 	}
 	// Key D
 	if (e.code == "KeyD")//"0x0020")
 	{
 		rightPressed = false;
+		rightReleased = true;
 	}
 	// Key W
 	if (e.code == "KeyW")//"0x0011")
 	{
 		upPressed = false;
+		upReleased = true;
 	}
 }
 
@@ -77,7 +86,7 @@ class Player
 		this.velX = 0;
 		this.velY = 0;
 		this.gravity = -0.01;
-		this.floorFriction = 0.5;
+		this.floorFriction = 0.05;
 		this.width = 1;
 		this.height = 1;
 		// The speed is 2 units per second
@@ -87,10 +96,12 @@ class Player
 		this.onGround = false;
 		this.isJumping = false;
 		this.isFalling = false;
+		this.color = "#ff0000";
 	}
 
 	update()
 	{
+		/*
 		if (player.onGround == false)
 		{
 			player.velY += player.gravity;
@@ -103,9 +114,18 @@ class Player
 		{
 			player.velX += player.floorFriction * elapsedTime;
 		}
+		*/
 
-		player.x += player.velX * elapsedTime;
-		player.y += player.velY * elapsedTime;
+		// Apply forces to player other than the user input
+		if (player.onGround == false)
+		{
+			player.velY += player.gravity * elapsedTime;
+		}
+
+		/*
+		if (player.velX > 0){ player.velX -= player.floorFriction * elapsedTime };
+		if (player.velX < 0) { player.velX += player.floorFriction * elapsedTime };
+		*/
 
 		// Check if player is out of bounds
 		if (player.x < 0){ player.x = 0; player.velX = 0;};
@@ -120,6 +140,7 @@ class Player
 		let bottomLeftTile  = [Math.floor(player.x), Math.floor(player.y)];
 		let bottomRightTile = [Math.ceil(player.x + player.width), Math.floor(player.y)];
 		*/
+		/*
 		let topLeftCorner = [Math.floor(player.x), Math.floor(player.y + player.height)];
 		let rightTile = [Math.floor(player.x + player.width), Math.floor(player.y + player.height)];
 		let bottomTile = [Math.floor(player.x), Math.floor(player.y)];
@@ -133,11 +154,91 @@ class Player
 			player.x += 0.1;
 			player.y += 0.1;
 		}
+		*/
+
+		/* Determine collision with map blocks */
+
+		// How far is the player going to be pushed to eliminate the collision.
+		let shiftX = 0;
+		let shiftY = 0;
+		// An array of x and y coordinate pairs, representing the four vertices of the player. Top-left, top-right, bottom-right, bottom-left (player origin).
+		let colBlocks = [player.x,
+						 player.y + player.height,
+						 player.x + player.width,
+						 player.y + player.height,
+						 player.x + player.width,
+						 player.y,
+						 player.x,
+						 player.y];
+
+		// Similar to above, but floored so that there can be checks for intersections with blocks sitting on these coordinates.
+		let colBlocksFloored = [Math.floor(player.x),
+								Math.floor(player.y + player.height),
+								Math.floor(player.x + player.width),
+								Math.floor(player.y + player.height),
+								Math.floor(player.x + player.width),
+								Math.floor(player.y),
+								Math.floor(player.x),
+								Math.floor(player.y)];
+
+		if (map[colBlocksFloored[0] + colBlocksFloored[1] * MAP_WIDTH] == "w")
+		{
+		}
+
+		for (let y = 0; y < MAP_HEIGHT; y++)
+		{
+			for (let x = 0; x < MAP_WIDTH; x++)
+			{
+				if (map[x + y * MAP_WIDTH] == "w")
+				{
+					/*
+					if (player.x > x && player.x < x + u && player.y > y && player.y < y + u)
+					{
+						player.velX *= -1;
+						player.velY *= -1;
+					}
+					*/
+					// If player origin is intersecting
+					if (player.x > x && player.x < x + 1 && player.y > y && player.y < y + 1)
+					{
+						player.velX = +1;
+						player.velY = +1;
+						console.log("Origin intersected.\n");
+					}
+					// If top left vertex of player is intersecting
+					if (player.x > x && player.x < x + 1 && player.y + player.height > y && player.y + player.height < y + 1)
+					{
+						player.velX = +1;
+						player.velY = -1;
+						console.log("Top left vertex intersected.\n");
+					}
+					// If top right vertex of player is intersecting
+					if (player.x + player.width > x && player.x + player.width < x + 1 && player.y + player.height > y && player.y + player.height < y + 1)
+					{
+						player.velX = -1;
+						player.velY = -1;
+						console.log("Top right vertex intersected.\n");
+					}
+					// If bottom right vertex of player is intersecting
+					if (player.x + player.width > x && player.x + player.width < x + 1 && player.y > y && player.y < y + 1)
+					{
+						player.velX = -1;
+						player.velY = +1;
+						console.log("Bottom right vertex intersected.\n");
+					}
+				}
+			}
+		}
 
 		console.log("player.x: " + player.x + "\n");
 		console.log("player.y: " + player.y + "\n");
 		console.log("player.velX: " + player.velX + "\n");
 		console.log("player.velY: " + player.velY + "\n");
+
+
+
+		player.x += player.velX * elapsedTime;
+		player.y += player.velY * elapsedTime;
 	}
 }
 
@@ -176,8 +277,8 @@ camera.x = 0;
 camera.y = 8;
 
 let player = new Player();
-player.x = 2;
-player.y = 1;
+player.x = 3;
+player.y = 2;
 
 window.main = function()
 {
@@ -191,7 +292,7 @@ window.main = function()
 	/* Handle input */
 	if (leftPressed)
 	{
-		player.velX = -player.speed * elapsedTime;
+		player.velX = -1 * player.speed * elapsedTime;
 	}
 
 	if (rightPressed)
