@@ -76,7 +76,7 @@ class Player
 		this.y = 0;
 		this.velX = 0;
 		this.velY = 0;
-		this.gravity = -0.5;
+		this.gravity = -0.01;
 		this.floorFriction = 0.5;
 		this.width = 1;
 		this.height = 1;
@@ -87,6 +87,57 @@ class Player
 		this.onGround = false;
 		this.isJumping = false;
 		this.isFalling = false;
+	}
+
+	update()
+	{
+		if (player.onGround == false)
+		{
+			player.velY += player.gravity;
+		}
+		if (player.velX > 0)
+		{
+			player.velX -= player.floorFriction * elapsedTime;
+		}
+		if (player.velX < 0)
+		{
+			player.velX += player.floorFriction * elapsedTime;
+		}
+
+		player.x += player.velX * elapsedTime;
+		player.y += player.velY * elapsedTime;
+
+		// Check if player is out of bounds
+		if (player.x < 0){ player.x = 0; player.velX = 0;};
+		if (player.x + player.width > MAP_WIDTH) { player.x = MAP_WIDTH - player.width; player.velX = 0;};
+		if (player.y < 0) { player.y = 0; player.velY = 0; player.onGround = true;};
+		if (player.y + player.height > MAP_HEIGHT) { player.y = MAP_HEIGHT - player.height };
+
+		// Check if player has collided with game block
+		/*
+		let topLeftTile     = [Math.floor(player.x), Math.ceil(player.y + player.height)];
+		let topRightTile    = [Math.ceil(player.x + player.width), Math.ceil(player.y + player.height)];
+		let bottomLeftTile  = [Math.floor(player.x), Math.floor(player.y)];
+		let bottomRightTile = [Math.ceil(player.x + player.width), Math.floor(player.y)];
+		*/
+		let topLeftCorner = [Math.floor(player.x), Math.floor(player.y + player.height)];
+		let rightTile = [Math.floor(player.x + player.width), Math.floor(player.y + player.height)];
+		let bottomTile = [Math.floor(player.x), Math.floor(player.y)];
+		let leftTile = [Math.ceil(player.x + player.width), Math.floor(player.y)];
+		console.log("topLeftTile: " + topLeftTile + "\n");
+		console.log("topRightTile: " + topRightTile + "\n");
+		console.log("bottomLeftTile: " + bottomLeftTile + "\n");
+		console.log("bottomRightTile: " + bottomRightTile + "\n");
+		if (map[bottomLeftTile[0], bottomLeftTile[1]] == "w")
+		{
+			player.x += 0.1;
+			player.y += 0.1;
+		}
+
+		console.log("player.x: " + player.x + "\n");
+		console.log("player.y: " + player.y + "\n");
+		console.log("player.velX: " + player.velX + "\n");
+		console.log("player.velY: " + player.velY + "\n");
 	}
 }
 
@@ -126,7 +177,7 @@ camera.y = 8;
 
 let player = new Player();
 player.x = 2;
-player.y = 2;
+player.y = 1;
 
 window.main = function()
 {
@@ -137,52 +188,15 @@ window.main = function()
 	//console.log("elapsedTime:" + elapsedTime + "\n");
 	tp1 = tp2;
 	
-	//camera.x += 0.01;
-	//camera.y -= 0.01;
-	//camera.y += 1;
 	/* Handle input */
 	if (leftPressed)
 	{
-		player.velX -= player.speed * elapsedTime;
-
-		// Check if player is out of bounds
-		if (player.x < 0 || player.x+player.width > MAP_WIDTH || player.y < 0 || player.y+player.height > MAP_HEIGHT)
-		{
-			player.velX += player.speed * elapsedTime;
-		}
-
-		// Check if player has collided with game block
-		let rect1X = Math.floor(player.x);
-		let rect1Y = Math.floor(player.y);
-		if (map[rect1X + rect1Y * MAP_WIDTH] != " ") {
-			if (rect1X < player.x + player.width && rect1X + u > player.x)
-			{
-				console.log("collision detected!");
-				player.velX += player.speed * elapsedTime;
-			}
-		}
+		player.velX = -player.speed * elapsedTime;
 	}
 
 	if (rightPressed)
 	{
-		player.velX += player.speed * elapsedTime;
-
-		// Check if player is out of bounds
-		if (player.x < 0 || player.x + player.width > MAP_WIDTH || player.y < 0 || player.y + player.height > MAP_HEIGHT)
-		{
-			player.velX -= player.speed * elapsedTime;
-		}
-
-		// Check if player has collided with game block
-		let rect1X = Math.round(player.x);
-		let rect1Y = Math.round(player.y);
-		if (map[rect1X + rect1Y * MAP_WIDTH] != " ") {
-			if (rect1X < player.x + player.width && rect1X + u > player.x)
-			{
-				console.log("collision detected!");
-				player.velX -= player.speed * elapsedTime;
-			}
-		}
+		player.velX = player.speed * elapsedTime;
 	}
 
 	if (upPressed)
@@ -191,54 +205,33 @@ window.main = function()
 
 		if (player.onGround == true)
 		{
-			player.velY += 1;
+			player.velY += 0.05;
 			player.onGround = false;
 		}
 
 		// Check if player is out of bounds
+		/*
 		if (player.x < 0 || player.x + player.width > MAP_WIDTH || player.y < 0 || player.y + player.height > MAP_HEIGHT)
 		{
 			player.velY -= 1;
 			player.onGround = true;
 		}
-
-		// Check if player has collided with game block
-		let rect1X = Math.round(player.x);
-		let rect1Y = Math.round(player.y);
-		if (map[rect1X + rect1Y * MAP_WIDTH] != " ") {
-			if (rect1Y < player.y+ player.height && rect1Y + u > player.y)
-			{
-				console.log("collision detected!");
-				player.velY -= 1;
-				player.onGround = true;
-			}
+		*/
+	}
+	else if (upPressed == false)
+	{
+		if (player.velY > 6.0)
+		{
+			player.velY = 6.0;
 		}
 	}
 
 	/* Physics */
-	if (player.onGround == false)
-	{
-		//player.velY -= 0.01;
-	}
-
-	let rect1X = Math.floor(player.x);
-	let rect1Y = Math.floor(player.y);
-	if (map[rect1X + rect1Y * MAP_WIDTH] != " ") {
-		if (rect1Y < player.y + player.height && rect1Y + u > player.y) {
-			console.log("collision detected!");
-			player.y += 0.01;
-			player.onGround = true;
-			player.velY = 0;
-		}
-	}
 
 	/* Update */
-	player.x += player.velX * elapsedTime;
-	player.y += player.velY * elapsedTime;
-	console.log("player.x: " + player.x + "\n");
-	console.log("player.y: " + player.y + "\n");
-	console.log("player.velX: " + player.velX + "\n");
-	console.log("player.velY: " + player.velY + "\n");
+	player.update();
+
+	/*
 	if (player.velX != 0)
 	{
 		if (player.velX > 0)
@@ -250,7 +243,8 @@ window.main = function()
 			player.velX += player.floorFriction * elapsedTime;
 		}
 	}
-	player.velY += player.gravity * elapsedTime;
+	*/
+	//player.velY += player.gravity * elapsedTime;
 	
 	/* Show */
 	/*
