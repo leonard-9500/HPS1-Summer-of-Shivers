@@ -101,17 +101,47 @@ class Player
 
 	update()
 	{
+		/* Handle input */
+		let xMove = 0;
+		if (leftPressed)
+		{
+			player.velX = -player.speed * elapsedTime;
+			xMove += 1;
+		}
+		else if (leftPressed == false)
+		{
+			xMove -=1;
+		}
 
-		// Apply forces to player other than the user input
-		/*
+		if (rightPressed)
+		{
+			player.velX = player.speed * elapsedTime;
+			xMove += 1;
+		}
+		else if (rightPressed == false)
+		{
+			xMove -= 1;
+		}
+
+		if (xMove == -2)
+		{
+			player.velX = 0;
+		}
+
+		if (upPressed) {
+			console.log("up pressed\n");
+
+			if (player.onGround == true)
+			{
+				player.velY += 0.05;
+				player.onGround = false;
+			}
+		}
+
 		if (player.onGround == false)
 		{
 			player.velY += player.gravity * elapsedTime;
 		}
-		*/
-
-		player.x += player.velX * elapsedTime;
-		player.y += player.velY * elapsedTime;
 
 		// Check if player is out of bounds
 		/*
@@ -121,9 +151,11 @@ class Player
 		if (player.y + player.height > MAP_HEIGHT) { player.y = MAP_HEIGHT - player.height };
 		*/
 
-		// Check collision between player and every block on the map
+		player.x += player.velX * elapsedTime;
+		player.y += player.velY * elapsedTime;
 
-		// In which direction does the player need to be pushed to get rid of collision.
+		// Check collision between player and every block on the map
+		// In which direction does the player need to be pushed to resolve the collision.
 		let up, right, down, left = false;
 		let leftSide, topSide, rightSide, bottomSide = false;
 		for (let y = 0; y < MAP_HEIGHT; y++)
@@ -134,110 +166,38 @@ class Player
 				leftSide, topSide, rightSide, bottomSide = false;
 				if (map[x + y * MAP_WIDTH] == "w")
 				{
+					console.log("Block found at x: " + x + ", y: " + y + "\n");
+					// If left edge of player is inside block
 					if (player.x > x && player.x < x + 1)
 					{
-						leftSide = true;
+						player.x = Math.ceil(player.x);
+						console.log("Player pushed to the right.\n");
 					}
-					else if (player.x + player.width > x && player.x + player.width < x + 1)
+					// If right edge of player is inside block
+					if (player.x + player.width > x && player.x + player.width < x + 1)
 					{
-						rightSide = true;
+						player.x = Math.floor(player.x);
+						console.log("Player pushed to the left.\n");
 					}
 
+					// If bottom edge of player is inside block
 					if (player.y > y && player.y < y + 1)
 					{
+						player.y = Math.ceil(player.y);
 						bottomSide = true;
 						player.onGround = true;
+						console.log("Player pushed upward.\n");
 					}
-					else if (player.y + player.height > y && player.y + player.height < y + 1)
+					// If top edge of player is inside block
+					if (player.y + player.height > y && player.y + player.height < y + 1)
 					{
+						player.y = Math.floor(player.y);
 						topSide = true;
+						console.log("Player pushed downward.\n");
 					}
-
-					if (leftSide)
-					{
-						player.x = Math.ceil(player.x);
-					}
-					if (rightSide)
-					{
-						player.x = Math.floor(player.x);
-					}
-					if (bottomSide)
-					{
-						player.y = Math.ceil(player.y);
-					}
-					if (topSide)
-					{
-						player.y = Math.floor(player.y);
-					}
-
-					/*
-					// If player origin is intersecting
-					if (player.x > x && player.x < x + 1 && player.y > y && player.y < y + 1)
-					{
-						//player.velX = +1;
-						//player.velY = +1;
-						//player.x = Math.ceil(player.x);
-						//player.y = Math.ceil(player.y);
-						up, right = true;
-						player.color = "#00ffff";
-						console.log("Origin intersected.\n");
-					}
-					// If top left vertex of player is intersecting
-					if (player.x > x && player.x < x + 1 && player.y + player.height > y && player.y + player.height < y + 1)
-					{
-						//player.velX = +1;
-						//player.velY = -1;
-						//player.x = Math.ceil(player.x);
-						//player.y = Math.floor(player.y);
-						down, right = true;
-						player.color = "#ff00ff";
-						console.log("Top left vertex intersected.\n");
-					}
-					// If top right vertex of player is intersecting
-					if (player.x + player.width > x && player.x + player.width < x + 1 && player.y + player.height > y && player.y + player.height < y + 1)
-					{
-						//player.velX = -1;
-						//player.velY = -1;
-						//player.x = Math.floor(player.x);
-						//player.y = Math.floor(player.y);
-						down, left = true;
-						player.color = "#00ff00";
-						console.log("Top right vertex intersected.\n");
-					}
-					// If bottom right vertex of player is intersecting
-					if (player.x + player.width > x && player.x + player.width < x + 1 && player.y > y && player.y < y + 1)
-					{
-						//player.velX = -1;
-						//player.velY = +1;
-						//player.x = Math.floor(player.x);
-						//player.y = Math.ceil(player.y);
-						up, left = true;
-						console.log("Bottom right vertex intersected.\n");
-					}
-					*/
-
-					/*
-					if (up)
-					{
-						player.y = Math.ceil(player.y);
-					}
-					else if (down)
-					{
-						player.y = Math.floor(player.y);
-					}
-
-					if (right)
-					{
-						player.x = Math.ceil(player.x);
-					}
-					else if (left)
-					{
-						player.x = Math.floor(player.x);
-					}
-					*/
 
 					// If there is a block below the player, he's standing on the floor.
-					if (map[player.x + (player.y-1) * MAP_WIDTH] == "w")
+					if (map[player.x + (player.y) * MAP_WIDTH] == "w")
 					{
 						player.onGround = true;
 						player.velY = 0;
@@ -259,27 +219,62 @@ class Camera
 	{
 		this.x = 0;
 		this.y = 0;
-		// The camera sensor size in game units.
-		this.width = 16;
-		this.height = 9;
 	}
 }
 
 let MAP_WIDTH = 16;
 let MAP_HEIGHT = 8;
 let map = "";
-map += "wwwwwwwwwwwwwwww";
-map += "w  w           w";
-map += "w  w           w";
-map += "w  wwwwwwwwww  w";
-map += "w              w";
-map += "w              w";
-map += "w    www       w";
-map += "wwwwwwwwwwwwwwww";
+map += "1111111111111111";
+map += "1  1           1";
+map += "1  1           1";
+map += "1  1111111111  1";
+map += "1              1";
+map += "1              1";
+map += "1    111       1";
+map += "1111111111111111";
 
 let tp1 = Date.now();
 let tp2 = Date.now();
 let elapsedTime = 0;
+
+// map char, name, visibility, destructibility, texture url
+let blocks = [[0, 0, 0],
+			  ["w", "Wall", true, false, "textures/wall.png"]];
+
+let texturesLoaded = [];
+for (let i = 0; i < 10; i++)
+{
+	texturesLoaded[i] = false;
+}
+console.log(texturesLoaded);
+
+let textures = [];
+/*
+for (let i = 0; i < 10; i++)
+{
+	if (blocks[i+1][0] != 0)
+	{
+		textures[i] = new Image;
+		textures[i].onload = function()
+		{
+			texturesLoaded[i] = true;
+		}
+		textures[i].src = blocks[i+1][4];
+	}
+}
+*/
+
+
+let img = new Image;
+let imgLoaded = false;
+img.onload = function()
+{
+	imgLoaded = true;
+}
+img.src = blocks[1][4];
+
+console.log("texturesLoaded: " + texturesLoaded + "\n");
 
 // Create objects
 let camera = new Camera();
@@ -288,8 +283,8 @@ camera.x = 0;
 camera.y = 8;
 
 let player = new Player();
-player.x = 3.2;
-player.y = 0.8;
+player.x = 1;
+player.y = 0;
 
 window.main = function()
 {
@@ -299,115 +294,32 @@ window.main = function()
 	elapsedTime = tp2-tp1;
 	//console.log("elapsedTime:" + elapsedTime + "\n");
 	tp1 = tp2;
-	
-	/* Handle input */
-	if (leftPressed)
-	{
-		player.velX = -player.speed * elapsedTime;
-	}
-	else if (leftPressed == false)
-	{
-		player.velX = 0;
-		/*
-		if (player.velX < 0)
-		{
-			player.velX += player.floorFriction * elapsedTime;
-		}
-		*/
-	}
-
-	if (rightPressed)
-	{
-		player.velX = player.speed * elapsedTime;
-	}
-	else if (rightPressed == false)
-	{
-		player.velX = 0;
-		/*
-		if (player.velX > 0)
-		{
-			player.velX -= player.floorFriction * elapsedTime;
-		}
-		*/
-	}
-
-	if (upPressed)
-	{
-		console.log("up pressed\n");
-
-		if (player.onGround == true)
-		{
-			player.velY += 0.05;
-			player.onGround = false;
-		}
-
-		// Check if player is out of bounds
-		/*
-		if (player.x < 0 || player.x + player.width > MAP_WIDTH || player.y < 0 || player.y + player.height > MAP_HEIGHT)
-		{
-			player.velY -= 1;
-			player.onGround = true;
-		}
-		*/
-	}
-	else if (upPressed == false)
-	{
-		if (player.onGround == false)
-		{
-			player.velY += player.gravity * elapsedTime;
-		}
-		/*
-		if (player.velY > 6.0)
-		{
-			player.velY = 6.0;
-		}
-		*/
-	}
-
-	/* Physics */
 
 	/* Update */
 	player.update();
-
-	/*
-	if (player.velX != 0)
-	{
-		if (player.velX > 0)
-		{
-			player.velX -= player.floorFriction * elapsedTime;
-		}
-		if (player.velX < 0)
-		{
-			player.velX += player.floorFriction * elapsedTime;
-		}
-	}
-	*/
-	//player.velY += player.gravity * elapsedTime;
 	
 	/* Show */
-	/*
-	for (let y = 0; y < SCREEN_HEIGHT; y += 1)
-	{
-		for (let x = 0; x < SCREEN_WIDTH; x += 1)
-		{
-			if (map[(camera.x+x) + (MAP_HEIGHT-camera.y+y) * MAP_WIDTH] == "w")
-			{
-				ctx.fillStyle = "000000";
-				ctx.fillRect((camera.x+x) * 16, (MAP_HEIGHT-camera.y+y) * 16, 16, 16);
-			}
-		}
-	}
-	*/
+
 	ctx.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
 	// Draw map
 	for (let y = 0; y < MAP_HEIGHT; y++)
 	{
 		for (let x = 0; x < MAP_WIDTH; x++)
 		{
-			if(map[x + (y * MAP_WIDTH)] == "w")
+			let i = map[x + (y * MAP_WIDTH)];
+			if (i != 0)
 			{
-				ctx.fillStyle = "#000000";
-				ctx.fillRect((x-camera.x)*u, (y+camera.y-MAP_HEIGHT)*u, u, u);
+				console.log("i: " + i + "\n");
+				if(blocks[i][2] == true)
+				{
+					if (imgLoaded)
+					{
+						ctx.drawImage(img, (x - camera.x) * u, (y + camera.y - MAP_HEIGHT + 1) * u, u, u);
+						//ctx.fillStyle = "#000000";
+						//ctx.fillRect((x-camera.x)*u, (y+camera.y-MAP_HEIGHT)*u, u, u);
+					}
+				}
 			}
 		}
 	}
