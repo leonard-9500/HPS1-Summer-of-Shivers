@@ -103,10 +103,12 @@ class Player
 	{
 
 		// Apply forces to player other than the user input
+		/*
 		if (player.onGround == false)
 		{
 			player.velY += player.gravity * elapsedTime;
 		}
+		*/
 
 		player.x += player.velX * elapsedTime;
 		player.y += player.velY * elapsedTime;
@@ -120,19 +122,64 @@ class Player
 		*/
 
 		// Check collision between player and every block on the map
+
+		// In which direction does the player need to be pushed to get rid of collision.
+		let up, right, down, left = false;
+		let leftSide, topSide, rightSide, bottomSide = false;
 		for (let y = 0; y < MAP_HEIGHT; y++)
 		{
 			for (let x = 0; x < MAP_WIDTH; x++)
 			{
+				up, right, down, left = false;
+				leftSide, topSide, rightSide, bottomSide = false;
 				if (map[x + y * MAP_WIDTH] == "w")
 				{
+					if (player.x > x && player.x < x + 1)
+					{
+						leftSide = true;
+					}
+					else if (player.x + player.width > x && player.x + player.width < x + 1)
+					{
+						rightSide = true;
+					}
+
+					if (player.y > y && player.y < y + 1)
+					{
+						bottomSide = true;
+						player.onGround = true;
+					}
+					else if (player.y + player.height > y && player.y + player.height < y + 1)
+					{
+						topSide = true;
+					}
+
+					if (leftSide)
+					{
+						player.x = Math.ceil(player.x);
+					}
+					if (rightSide)
+					{
+						player.x = Math.floor(player.x);
+					}
+					if (bottomSide)
+					{
+						player.y = Math.ceil(player.y);
+					}
+					if (topSide)
+					{
+						player.y = Math.floor(player.y);
+					}
+
+					/*
 					// If player origin is intersecting
 					if (player.x > x && player.x < x + 1 && player.y > y && player.y < y + 1)
 					{
 						//player.velX = +1;
 						//player.velY = +1;
-						player.x = Math.ceil(player.x);
-						player.y = Math.ceil(player.y);
+						//player.x = Math.ceil(player.x);
+						//player.y = Math.ceil(player.y);
+						up, right = true;
+						player.color = "#00ffff";
 						console.log("Origin intersected.\n");
 					}
 					// If top left vertex of player is intersecting
@@ -140,8 +187,10 @@ class Player
 					{
 						//player.velX = +1;
 						//player.velY = -1;
-						player.x = Math.ceil(player.x);
-						player.y = Math.floor(player.y);
+						//player.x = Math.ceil(player.x);
+						//player.y = Math.floor(player.y);
+						down, right = true;
+						player.color = "#ff00ff";
 						console.log("Top left vertex intersected.\n");
 					}
 					// If top right vertex of player is intersecting
@@ -149,8 +198,10 @@ class Player
 					{
 						//player.velX = -1;
 						//player.velY = -1;
-						player.x = Math.floor(player.x);
-						player.y = Math.floor(player.y);
+						//player.x = Math.floor(player.x);
+						//player.y = Math.floor(player.y);
+						down, left = true;
+						player.color = "#00ff00";
 						console.log("Top right vertex intersected.\n");
 					}
 					// If bottom right vertex of player is intersecting
@@ -158,10 +209,32 @@ class Player
 					{
 						//player.velX = -1;
 						//player.velY = +1;
-						player.x = Math.floor(player.x);
-						player.y = Math.ceil(player.y);
+						//player.x = Math.floor(player.x);
+						//player.y = Math.ceil(player.y);
+						up, left = true;
 						console.log("Bottom right vertex intersected.\n");
 					}
+					*/
+
+					/*
+					if (up)
+					{
+						player.y = Math.ceil(player.y);
+					}
+					else if (down)
+					{
+						player.y = Math.floor(player.y);
+					}
+
+					if (right)
+					{
+						player.x = Math.ceil(player.x);
+					}
+					else if (left)
+					{
+						player.x = Math.floor(player.x);
+					}
+					*/
 
 					// If there is a block below the player, he's standing on the floor.
 					if (map[player.x + (player.y-1) * MAP_WIDTH] == "w")
@@ -230,14 +303,17 @@ window.main = function()
 	/* Handle input */
 	if (leftPressed)
 	{
-		player.velX = -1 * player.speed * elapsedTime;
+		player.velX = -player.speed * elapsedTime;
 	}
 	else if (leftPressed == false)
 	{
+		player.velX = 0;
+		/*
 		if (player.velX < 0)
 		{
 			player.velX += player.floorFriction * elapsedTime;
 		}
+		*/
 	}
 
 	if (rightPressed)
@@ -246,10 +322,13 @@ window.main = function()
 	}
 	else if (rightPressed == false)
 	{
+		player.velX = 0;
+		/*
 		if (player.velX > 0)
 		{
 			player.velX -= player.floorFriction * elapsedTime;
 		}
+		*/
 	}
 
 	if (upPressed)
@@ -334,7 +413,7 @@ window.main = function()
 	}
 	
 	// Draw player
-	ctx.fillStyle = "#ff0000";
+	ctx.fillStyle = player.color;
 	ctx.fillRect((player.x - camera.x) * u, (camera.y - player.y - player.height)*u, player.width * u, player.height * u);
 	
 };
