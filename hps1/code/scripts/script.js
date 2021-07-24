@@ -239,31 +239,36 @@ let tp2 = Date.now();
 let elapsedTime = 0;
 
 // map char, name, visibility, destructibility, texture url
-let blocks = [[0, 0, 0],
+// An array containing information about the different types of blocks
+let blocks = [[0, 0, 0, 0, 0],
 			  ["w", "Wall", true, false, "textures/wall.png"]];
 
+// An array for checking if the corresponding textures in the "textures" array have been loaded.
 let texturesLoaded = [];
-for (let i = 0; i < 10; i++)
+for (let i = 0; i < blocks.length/5; i++)
 {
 	texturesLoaded[i] = false;
 }
 console.log(texturesLoaded);
 
+// An array that contains the images corresponding to the blocks in the "blocks" array.
 let textures = [];
-/*
-for (let i = 0; i < 10; i++)
+for (let i = 0; i < blocks.length/5; i++)
 {
-	if (blocks[i+1][0] != 0)
+	if (blocks[i][0] != 0)
 	{
 		textures[i] = new Image;
 		textures[i].onload = function()
 		{
-			texturesLoaded[i] = true;
+			texturesLoaded[1] = true;
 		}
-		textures[i].src = blocks[i+1][4];
+		if (blocks[i][4] != 0)
+		{
+			textures[i].src = blocks[i][4];
+			console.log("Attached src to image in textures array. \n");
+		}
 	}
 }
-*/
 
 
 let img = new Image;
@@ -308,12 +313,15 @@ window.main = function()
 		for (let x = 0; x < MAP_WIDTH; x++)
 		{
 			let i = map[x + (y * MAP_WIDTH)];
+			// If the map is not empty at the current coordinates.
 			if (i != 0)
 			{
 				console.log("i: " + i + "\n");
+				// If block's visibility attribute has a value of "true".
 				if(blocks[i][2] == true)
 				{
-					if (imgLoaded)
+					// if (texturesLoaded[i] == true)
+					if (1)
 					{
 						ctx.drawImage(img, (x - camera.x) * u, (y + camera.y - MAP_HEIGHT + 1) * u, u, u);
 						//ctx.fillStyle = "#000000";
