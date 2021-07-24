@@ -101,20 +101,6 @@ class Player
 
 	update()
 	{
-		/*
-		if (player.onGround == false)
-		{
-			player.velY += player.gravity;
-		}
-		if (player.velX > 0)
-		{
-			player.velX -= player.floorFriction * elapsedTime;
-		}
-		if (player.velX < 0)
-		{
-			player.velX += player.floorFriction * elapsedTime;
-		}
-		*/
 
 		// Apply forces to player other than the user input
 		if (player.onGround == false)
@@ -122,109 +108,66 @@ class Player
 			player.velY += player.gravity * elapsedTime;
 		}
 
-		/*
-		if (player.velX > 0){ player.velX -= player.floorFriction * elapsedTime };
-		if (player.velX < 0) { player.velX += player.floorFriction * elapsedTime };
-		*/
+		player.x += player.velX * elapsedTime;
+		player.y += player.velY * elapsedTime;
 
 		// Check if player is out of bounds
+		/*
 		if (player.x < 0){ player.x = 0; player.velX = 0;};
 		if (player.x + player.width > MAP_WIDTH) { player.x = MAP_WIDTH - player.width; player.velX = 0;};
 		if (player.y < 0) { player.y = 0; player.velY = 0; player.onGround = true;};
 		if (player.y + player.height > MAP_HEIGHT) { player.y = MAP_HEIGHT - player.height };
-
-		// Check if player has collided with game block
-		/*
-		let topLeftTile     = [Math.floor(player.x), Math.ceil(player.y + player.height)];
-		let topRightTile    = [Math.ceil(player.x + player.width), Math.ceil(player.y + player.height)];
-		let bottomLeftTile  = [Math.floor(player.x), Math.floor(player.y)];
-		let bottomRightTile = [Math.ceil(player.x + player.width), Math.floor(player.y)];
-		*/
-		/*
-		let topLeftCorner = [Math.floor(player.x), Math.floor(player.y + player.height)];
-		let rightTile = [Math.floor(player.x + player.width), Math.floor(player.y + player.height)];
-		let bottomTile = [Math.floor(player.x), Math.floor(player.y)];
-		let leftTile = [Math.ceil(player.x + player.width), Math.floor(player.y)];
-		console.log("topLeftTile: " + topLeftTile + "\n");
-		console.log("topRightTile: " + topRightTile + "\n");
-		console.log("bottomLeftTile: " + bottomLeftTile + "\n");
-		console.log("bottomRightTile: " + bottomRightTile + "\n");
-		if (map[bottomLeftTile[0], bottomLeftTile[1]] == "w")
-		{
-			player.x += 0.1;
-			player.y += 0.1;
-		}
 		*/
 
-		/* Determine collision with map blocks */
-
-		// How far is the player going to be pushed to eliminate the collision.
-		let shiftX = 0;
-		let shiftY = 0;
-		// An array of x and y coordinate pairs, representing the four vertices of the player. Top-left, top-right, bottom-right, bottom-left (player origin).
-		let colBlocks = [player.x,
-						 player.y + player.height,
-						 player.x + player.width,
-						 player.y + player.height,
-						 player.x + player.width,
-						 player.y,
-						 player.x,
-						 player.y];
-
-		// Similar to above, but floored so that there can be checks for intersections with blocks sitting on these coordinates.
-		let colBlocksFloored = [Math.floor(player.x),
-								Math.floor(player.y + player.height),
-								Math.floor(player.x + player.width),
-								Math.floor(player.y + player.height),
-								Math.floor(player.x + player.width),
-								Math.floor(player.y),
-								Math.floor(player.x),
-								Math.floor(player.y)];
-
-		if (map[colBlocksFloored[0] + colBlocksFloored[1] * MAP_WIDTH] == "w")
-		{
-		}
-
+		// Check collision between player and every block on the map
 		for (let y = 0; y < MAP_HEIGHT; y++)
 		{
 			for (let x = 0; x < MAP_WIDTH; x++)
 			{
 				if (map[x + y * MAP_WIDTH] == "w")
 				{
-					/*
-					if (player.x > x && player.x < x + u && player.y > y && player.y < y + u)
-					{
-						player.velX *= -1;
-						player.velY *= -1;
-					}
-					*/
 					// If player origin is intersecting
 					if (player.x > x && player.x < x + 1 && player.y > y && player.y < y + 1)
 					{
-						player.velX = +1;
-						player.velY = +1;
+						//player.velX = +1;
+						//player.velY = +1;
+						player.x = Math.ceil(player.x);
+						player.y = Math.ceil(player.y);
 						console.log("Origin intersected.\n");
 					}
 					// If top left vertex of player is intersecting
 					if (player.x > x && player.x < x + 1 && player.y + player.height > y && player.y + player.height < y + 1)
 					{
-						player.velX = +1;
-						player.velY = -1;
+						//player.velX = +1;
+						//player.velY = -1;
+						player.x = Math.ceil(player.x);
+						player.y = Math.floor(player.y);
 						console.log("Top left vertex intersected.\n");
 					}
 					// If top right vertex of player is intersecting
 					if (player.x + player.width > x && player.x + player.width < x + 1 && player.y + player.height > y && player.y + player.height < y + 1)
 					{
-						player.velX = -1;
-						player.velY = -1;
+						//player.velX = -1;
+						//player.velY = -1;
+						player.x = Math.floor(player.x);
+						player.y = Math.floor(player.y);
 						console.log("Top right vertex intersected.\n");
 					}
 					// If bottom right vertex of player is intersecting
 					if (player.x + player.width > x && player.x + player.width < x + 1 && player.y > y && player.y < y + 1)
 					{
-						player.velX = -1;
-						player.velY = +1;
+						//player.velX = -1;
+						//player.velY = +1;
+						player.x = Math.floor(player.x);
+						player.y = Math.ceil(player.y);
 						console.log("Bottom right vertex intersected.\n");
+					}
+
+					// If there is a block below the player, he's standing on the floor.
+					if (map[player.x + (player.y-1) * MAP_WIDTH] == "w")
+					{
+						player.onGround = true;
+						player.velY = 0;
 					}
 				}
 			}
@@ -234,11 +177,6 @@ class Player
 		console.log("player.y: " + player.y + "\n");
 		console.log("player.velX: " + player.velX + "\n");
 		console.log("player.velY: " + player.velY + "\n");
-
-
-
-		player.x += player.velX * elapsedTime;
-		player.y += player.velY * elapsedTime;
 	}
 }
 
@@ -277,8 +215,8 @@ camera.x = 0;
 camera.y = 8;
 
 let player = new Player();
-player.x = 3;
-player.y = 2;
+player.x = 3.2;
+player.y = 0.8;
 
 window.main = function()
 {
@@ -294,10 +232,24 @@ window.main = function()
 	{
 		player.velX = -1 * player.speed * elapsedTime;
 	}
+	else if (leftPressed == false)
+	{
+		if (player.velX < 0)
+		{
+			player.velX += player.floorFriction * elapsedTime;
+		}
+	}
 
 	if (rightPressed)
 	{
 		player.velX = player.speed * elapsedTime;
+	}
+	else if (rightPressed == false)
+	{
+		if (player.velX > 0)
+		{
+			player.velX -= player.floorFriction * elapsedTime;
+		}
 	}
 
 	if (upPressed)
@@ -321,10 +273,16 @@ window.main = function()
 	}
 	else if (upPressed == false)
 	{
+		if (player.onGround == false)
+		{
+			player.velY += player.gravity * elapsedTime;
+		}
+		/*
 		if (player.velY > 6.0)
 		{
 			player.velY = 6.0;
 		}
+		*/
 	}
 
 	/* Physics */
